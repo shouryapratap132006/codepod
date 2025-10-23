@@ -25,6 +25,70 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/*
+  --- Remote Cursor Styles for Monaco Editor ---
+*/
+
+/* The username label (Content Widget) */
+.remote-user-label {
+  position: absolute !important;
+  top: -18px !important;
+  left: -2px !important;
+  color: #fff;
+  font-size: 10px;
+  padding: 0 4px;
+  border-radius: 3px;
+  white-space: nowrap;
+  pointer-events: none; /* Crucial: Allows clicking through the label */
+  z-index: 10;
+  opacity: 0.9;
+}
+
+/* The blinking vertical line cursor (Decoration) */
+.remote-cursor-line {
+  position: absolute !important;
+  border-left: 2px solid; /* Color injected by JS */
+  height: 100%;
+  left: 0;
+  animation: remote-blink 1s step-end infinite;
+}
+
+@keyframes remote-blink {
+  from,
+  to {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* The line highlight (Decoration) - Color dynamically injected */
+.remote-line-highlight {
+  /* This class acts as a target for dynamic color injection */
+}
+
+/* The locked area highlight (Decoration) */
+.locked-area-highlight {
+  background-color: #f7a07240 !important; /* Muted orange/red with transparency */
+  border-bottom: 2px dashed #f7a072 !important;
+}
+
+/*
+  --- End of Remote Cursor Styles ---
+*/
+.locked-area-highlight {
+  background-color: rgba(255, 99, 71, 0.2);
+  border: 1px solid rgba(255, 99, 71, 0.6);
+}
+.remote-user-label {
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 10px;
+  color: #fff;
+  font-weight: 600;
+  pointer-events: none;
+}
 
 
 .scrollbar-hide::-webkit-scrollbar {
