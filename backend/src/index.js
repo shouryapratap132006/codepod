@@ -2,9 +2,27 @@ import express from "express";
 import http from "http";
 import { Server } from "socket.io";
 import cors from "cors";
+import bodyParser from "body-parser";
+import signupRoute from "./routes/signup.js"; // ✅ fixed import
+import createAdminAccount from "./scripts/admin.js";
+import loginRoute from "./routes/login.js"
+import userRoute from "./routes/user.js"
+
 
 const app = express();
 const server = http.createServer(app);
+
+app.use(cors());
+app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+
+createAdminAccount();
+
+app.use("/user", signupRoute);
+app.use("/auth",loginRoute)
+app.use("/api",userRoute)
+
 
 // ✅ Make sure CORS is fully allowed
 const io = new Server(server, {
@@ -13,9 +31,6 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
   },
 });
-
-app.use(cors());
-app.use(express.json());
 
 io.on("connection", (socket) => {
   console.log("🟢 New user connected:", socket.id);
