@@ -5,19 +5,35 @@ import cors from "cors";
 import { exec } from "child_process";
 import fs from "fs";
 import path from "path";
+import bodyParser from "body-parser";
+import signupRoute from "./routes/signup.js"; // ✅ fixed import
+import createAdminAccount from "./scripts/admin.js";
+import loginRoute from "./routes/login.js"
+import userRoute from "./routes/user.js"
+
 
 const app = express();
 const server = http.createServer(app);
 
+app.use(cors());
+app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+
+createAdminAccount();
+
+app.use("/user", signupRoute);
+app.use("/auth",loginRoute)
+app.use("/api",userRoute)
+
+
+// ✅ Make sure CORS is fully allowed
 const io = new Server(server, {
   cors: {
     origin: "*", 
     methods: ["GET", "POST"],
   },
 });
-
-app.use(cors());
-app.use(express.json());
 
 // Global shared states
 const roomUsers = {}; // { roomId: [{ username, socketId }] }

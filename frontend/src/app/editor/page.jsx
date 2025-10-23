@@ -18,7 +18,9 @@ const BACKEND_URL = "http://localhost:4000";
 const DEFAULT_LANGUAGE = "python";
 const SUPPORTED_LANGUAGES = ["javascript", "python", "java", "cpp"];
 
+
 export default function EditorPage() {
+
   const [socket, setSocket] = useState(null);
   const [code, setCode] = useState("# Start coding together!");
   const [users, setUsers] = useState([]);
@@ -38,6 +40,7 @@ export default function EditorPage() {
   const remoteDecorations = useRef({});
   const remoteWidgets = useRef({});
   const isResizing = useRef(false);
+
 
   const getUserColor = (name) => {
     const colors = ["#00C9A7", "#FF6B6B", "#FFD93D", "#4ECDC4", "#845EC2"];
@@ -356,5 +359,6 @@ export default function EditorPage() {
         </div>
       </main>
     </div>
+
   );
 }
