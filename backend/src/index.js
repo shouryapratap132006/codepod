@@ -6,11 +6,11 @@ import { exec } from "child_process";
 import fs from "fs";
 import path from "path";
 import bodyParser from "body-parser";
-import signupRoute from "./routes/signup.js"; // ✅ fixed import
+import signupRoute from "./routes/signup.js";
 import createAdminAccount from "./scripts/admin.js";
-import loginRoute from "./routes/login.js"
-import userRoute from "./routes/user.js"
-
+import loginRoute from "./routes/login.js";
+import userRoute from "./routes/user.js";
+import chatSocket from "./sockets/chatSocket.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -19,21 +19,23 @@ app.use(cors());
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-
 createAdminAccount();
 
 app.use("/user", signupRoute);
-app.use("/auth",loginRoute)
-app.use("/api",userRoute)
-
+app.use("/auth", loginRoute);
+app.use("/api", userRoute);
 
 // ✅ Make sure CORS is fully allowed
 const io = new Server(server, {
-  cors: {
-    origin: "*", 
-    methods: ["GET", "POST"],
-  },
+  cors: { origin: "*", methods: ["GET", "POST"] },
 });
+
+// ✅ Attach editor namespace
+const editorNamespace = io.of("/editor");
+
+// ✅ Attach chat namespace (clean & separate)
+const chatNamespace = io.of("/chat");
+chatSocket(chatNamespace);
 
 // Global shared states
 const roomUsers = {}; // { roomId: [{ username, socketId }] }
@@ -86,8 +88,52 @@ io.on("connection", (socket) => {
     socket.to(socket.roomId).emit("global-restrict-toggle", restricted);
     console.log(`🔒 Restriction toggled in ${socket.roomId}: ${restricted}`);
   });
-  
 
+  // ✅ When host ends the room
+  socket.on("end-room", ({ roomId }) => {
+    console.log(`🚪 Room ${roomId} ended by host`);
+
+    // Notify all users in the room
+    io.to(roomId).emit("room-ended", {
+      message: "🛑 This session has been ended by the host.",
+    });
+
+    // Clean up memory
+    delete roomUsers[roomId];
+    delete roomCodes[roomId];
+    delete roomLocks[roomId];
+
+    // Disconnect all sockets in the room
+    const connectedSockets = io.sockets.adapter.rooms.get(roomId);
+    if (connectedSockets) {
+      for (const socketId of connectedSockets) {
+        const s = io.sockets.sockets.get(socketId);
+        if (s) s.leave(roomId);
+      }
+    }
+  });
+
+  // ✅ When any participant leaves the room
+  socket.on("leave-room", ({ roomId, username }) => {
+    console.log(`👋 ${username} left room ${roomId}`);
+
+    socket.leave(roomId);
+
+    if (roomUsers[roomId]) {
+      roomUsers[roomId] = roomUsers[roomId].filter(
+        (u) => u.socketId !== socket.id
+      );
+
+      io.to(roomId).emit("users-update", {
+        users: roomUsers[roomId].map((u) => u.username),
+        count: roomUsers[roomId].length,
+      });
+    }
+
+    socket.emit("room-left", {
+      message: "✅ You have left the room successfully.",
+    });
+  });
 
   socket.on("execute-code", async ({ code, language }) => {
     try {
@@ -119,7 +165,10 @@ io.on("connection", (socket) => {
           command = `g++ "${filename}" -o "${tmpDir}/code.out" && "${tmpDir}/code.out"`;
           break;
         default:
-          socket.emit("execution-result", `❌ Language "${language}" not supported`);
+          socket.emit(
+            "execution-result",
+            `❌ Language "${language}" not supported`
+          );
           return;
       }
 
@@ -139,7 +188,9 @@ io.on("connection", (socket) => {
     const { roomId, username } = socket;
     if (!roomId || !roomUsers[roomId]) return;
 
-    roomUsers[roomId] = roomUsers[roomId].filter((u) => u.socketId !== socket.id);
+    roomUsers[roomId] = roomUsers[roomId].filter(
+      (u) => u.socketId !== socket.id
+    );
 
     io.to(roomId).emit("users-update", {
       users: roomUsers[roomId].map((u) => u.username),
