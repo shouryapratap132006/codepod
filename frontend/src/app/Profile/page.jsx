@@ -102,7 +102,7 @@ export default function ProfilePage() {
 
   if (!token)
     return (
-      <div className="max-w-xl mx-auto  p-8 mt-20 text-center bg-[#101014] text-white rounded-2xl shadow-md border border-gray-800">
+      <div className="max-w-xl mx-auto  p-8 mt-20 mb-20 text-center bg-[#150f22] bg-gradient-to-b from-[#0A0A18] via-[#141022] to-[#1A162B]  text-white rounded-2xl shadow-md border border-gray-800">
         <h2 className="text-2xl font-semibold mb-3">Please Sign In</h2>
         <p className="text-gray-400 mb-6">
           You need to sign in to view your profile.
@@ -117,7 +117,7 @@ export default function ProfilePage() {
     );
 
   return (
-    <div className="max-w-4xl mx-auto mt-16  mb-20 bg-[#0e0e12] text-white rounded-2xl shadow-md border border-gray-800 p-10">
+    <div className="max-w-4xl mx-auto mt-16 mb-20 bg-[#150f22] bg-gradient-to-b from-[#0A0A18] via-[#141022] to-[#1A162B] text-white rounded-2xl shadow-md border border-gray-800 p-10">
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row items-center sm:items-start gap-10 border-b border-gray-800 pb-10">
         {/* Profile Image */}
@@ -140,17 +140,6 @@ export default function ProfilePage() {
                     .toUpperCase()
                 : "U"}
             </div>
-          )}
-          {editMode && (
-            <label className="absolute bottom-3 right-3 bg-blue-600 p-2 rounded-full cursor-pointer hover:bg-blue-700 transition">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-              />
-              <Camera size={18} />
-            </label>
           )}
         </div>
 
