@@ -10,6 +10,7 @@ import signupRoute from "./routes/signup.js"; // ✅ fixed import
 import createAdminAccount from "./scripts/admin.js";
 import loginRoute from "./routes/login.js"
 import userRoute from "./routes/user.js"
+import meRoute from "./routes/me.js"
 
 
 const app = express();
@@ -25,6 +26,7 @@ createAdminAccount();
 app.use("/user", signupRoute);
 app.use("/auth",loginRoute)
 app.use("/api",userRoute)
+app.use("/me",meRoute)
 
 
 // ✅ Make sure CORS is fully allowed
@@ -154,6 +156,8 @@ io.on("connection", (socket) => {
     console.log(`🔴 ${username || "User"} disconnected from ${roomId}`);
   });
 });
+
+  
 
 const PORT = 4000;
 server.listen(PORT, () => console.log(`✅ Backend running on port ${PORT}`));
