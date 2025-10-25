@@ -9,6 +9,7 @@ import {
   FolderOpen,
   MessageSquare,
   Bot,
+  User,
   Users,
   Settings,
   LogOut,
@@ -60,7 +61,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   ];
 
   const bottomItems = [
-    { label: "Settings", icon: Settings, href: "/settings" },
+    { label: "Profile", icon: User, href: "/Profile" },
     isLoggedIn
       ? { label: "Logout", icon: LogOut, onClick: handleLogout }
       : { label: "Signup", icon: LogIn, href: "/auth/signup" },

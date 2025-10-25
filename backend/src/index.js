@@ -6,15 +6,16 @@ import { exec } from "child_process";
 import fs from "fs";
 import path from "path";
 import bodyParser from "body-parser";
+
 import signupRoute from "./routes/signup.js";
 import createAdminAccount from "./scripts/admin.js";
 import loginRoute from "./routes/login.js";
 import userRoute from "./routes/user.js";
 import chatSocket from "./sockets/chatSocket.js";
-import loginRoute from "./routes/login.js"
-import userRoute from "./routes/user.js"
-import meRoute from "./routes/me.js"
+import meRoute from "./routes/me.js";
 
+// ✅ NEW IMPORT for profile
+import profileRoute from "./routes/profileRoute.js";  
 
 const app = express();
 const server = http.createServer(app);
@@ -25,28 +26,29 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 createAdminAccount();
 
+// ✅ Register routes
 app.use("/user", signupRoute);
+app.use("/auth", loginRoute);
+app.use("/api", userRoute);
+app.use("/me", meRoute);
 
-app.use("/auth",loginRoute)
-app.use("/api",userRoute)
-app.use("/me",meRoute)
+// ✅ ADD this — your profile route
+app.use("/api/profile", profileRoute);  
 
 // ✅ Make sure CORS is fully allowed
 const io = new Server(server, {
   cors: { origin: "*", methods: ["GET", "POST"] },
 });
 
-// ✅ Attach editor namespace
+// ✅ Attach namespaces
 const editorNamespace = io.of("/editor");
-
-// ✅ Attach chat namespace (clean & separate)
 const chatNamespace = io.of("/chat");
 chatSocket(chatNamespace);
 
 // Global shared states
-const roomUsers = {}; // { roomId: [{ username, socketId }] }
-const roomCodes = {}; // { roomId: codeString }
-const roomLocks = {}; // { roomId: { lockedBy, positionRange } }
+const roomUsers = {};
+const roomCodes = {};
+const roomLocks = {};
 
 io.on("connection", (socket) => {
   console.log("🟢 User connected:", socket.id);
@@ -60,7 +62,6 @@ io.on("connection", (socket) => {
     if (!roomCodes[roomId]) roomCodes[roomId] = "// Start coding together...";
 
     roomUsers[roomId].push({ username, socketId: socket.id });
-
     socket.emit("load-code", roomCodes[roomId]);
 
     io.to(roomId).emit("users-update", {
@@ -95,21 +96,17 @@ io.on("connection", (socket) => {
     console.log(`🔒 Restriction toggled in ${socket.roomId}: ${restricted}`);
   });
 
-  // ✅ When host ends the room
   socket.on("end-room", ({ roomId }) => {
     console.log(`🚪 Room ${roomId} ended by host`);
 
-    // Notify all users in the room
     io.to(roomId).emit("room-ended", {
       message: "🛑 This session has been ended by the host.",
     });
 
-    // Clean up memory
     delete roomUsers[roomId];
     delete roomCodes[roomId];
     delete roomLocks[roomId];
 
-    // Disconnect all sockets in the room
     const connectedSockets = io.sockets.adapter.rooms.get(roomId);
     if (connectedSockets) {
       for (const socketId of connectedSockets) {
@@ -119,7 +116,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  // ✅ When any participant leaves the room
   socket.on("leave-room", ({ roomId, username }) => {
     console.log(`👋 ${username} left room ${roomId}`);
 
@@ -211,8 +207,6 @@ io.on("connection", (socket) => {
     console.log(`🔴 ${username || "User"} disconnected from ${roomId}`);
   });
 });
-
-  
 
 const PORT = 4000;
 server.listen(PORT, () => console.log(`✅ Backend running on port ${PORT}`));
