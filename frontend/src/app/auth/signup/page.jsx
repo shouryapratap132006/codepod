@@ -28,7 +28,7 @@ export default function Signup() {
       });
       const data = await response.json();
       console.log("data:", data);
-      router.push("/home");
+      router.push("/login");
     } catch (error) {
       console.error("Error:", error);
     } finally {

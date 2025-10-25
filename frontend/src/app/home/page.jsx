@@ -12,7 +12,7 @@ export default function HomePage() {
   // Fetch logged-in user name from backend
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) return;
+    if (!token) return; // not logged in
 
     fetch("http://localhost:4000/me", {
       headers: { Authorization: `Bearer ${token}` },
@@ -27,28 +27,19 @@ export default function HomePage() {
       .catch((err) => console.error("Error fetching user:", err));
   }, []);
 
+  // Join Room Handler
   const handleJoin = () => {
-    if (!username) {
-      return alert("Please enter your name!");
-    }
-    if (!roomId) {
-      return alert("Room ID is required to join a room!");
-    }
+    if (!localStorage.getItem("token")) return alert("Please login first!");
+    if (!username) return alert("Please enter your name!");
+    if (!roomId) return alert("Room ID is required to join a room!");
     window.location.href = `/editor?roomId=${roomId}&username=${username}`;
   };
 
+  // Create Room Handler
   const handleCreateRoom = ({ roomName, roomId, username }) => {
+    if (!localStorage.getItem("token")) return alert("Please login first!");
+    if (!roomName) return alert("Please enter a room name!");
     console.log("Room created:", { roomName, roomId, username });
-    // Optional: save room/session to backend
-    // fetch("http://localhost:4000/session/create", {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //     Authorization: `Bearer ${localStorage.getItem("token")}`,
-    //   },
-    //   body: JSON.stringify({ sessionName: roomName, roomId }),
-    // });
-
     window.location.href = `/editor?roomId=${roomId}&username=${username}`;
   };
 
@@ -99,7 +90,10 @@ export default function HomePage() {
             Join Room
           </button>
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => {
+              if (!localStorage.getItem("token")) return alert("Please login first!");
+              setIsModalOpen(true);
+            }}
             className="flex-1 border border-[#6C63FF] text-[#B59FFF] hover:bg-[#6C63FF]/20 p-3 rounded-lg font-semibold transition-all"
           >
             Create New
