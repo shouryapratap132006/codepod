@@ -94,7 +94,7 @@ export default function Login() {
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             type="submit"
-            className="w-full bg-gradient-to-r from-purple-600 to-indigo-500 hover:from-purple-500 hover:to-indigo-400 text-white p-3 rounded-md font-semibold transition-colors shadow-lg"
+            className="w-full bg-gradient-to-br from-purple-600 to-indigo-500 hover:from-purple-500 hover:to-indigo-400 text-white p-3 rounded-md font-semibold transition-colors shadow-lg"
           >
             Login
           </motion.button>
