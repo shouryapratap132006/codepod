@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 import Editor from "@monaco-editor/react";
+import ChatDrawer from "../components/ChatDrawer";
 import {
   Users,
   UserCheck,
@@ -292,6 +293,31 @@ export default function EditorPage() {
               {isRestricted ? "Allow Editing" : "Restrict Editing"}
             </button>
           )}
+          {isAdmin ? (
+        <button
+          onClick={() => {
+            if (confirm("End this room for everyone?")) {
+              socket?.emit("end-room", { roomId });
+              setTimeout(() => window.location.href = "/", 1000);
+            }
+          }}
+          className="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-white text-sm flex items-center justify-center gap-2 transition"
+        >
+          <Lock size={16} /> End Room
+        </button>
+      ) : (
+        <button
+          onClick={() => {
+            if (confirm("Do you want to leave this room?")) {
+              socket?.emit("leave-room", { roomId, username });
+              setTimeout(() => window.location.href = "/", 1000);
+            }
+          }}
+          className="bg-gray-600 hover:bg-gray-700 px-3 py-2 rounded text-white text-sm flex items-center justify-center gap-2 transition"
+        >
+          <Lock size={16} /> Leave
+        </button>
+      )}
         </div>
       </aside>
 
@@ -314,6 +340,8 @@ export default function EditorPage() {
               </span>
             )}
           </div>
+          <ChatDrawer username={username} roomId={roomId} />
+          
         </div>
 
         <Editor
