@@ -11,6 +11,10 @@ import createAdminAccount from "./scripts/admin.js";
 import loginRoute from "./routes/login.js";
 import userRoute from "./routes/user.js";
 import chatSocket from "./sockets/chatSocket.js";
+import loginRoute from "./routes/login.js"
+import userRoute from "./routes/user.js"
+import meRoute from "./routes/me.js"
+
 
 const app = express();
 const server = http.createServer(app);
@@ -22,8 +26,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 createAdminAccount();
 
 app.use("/user", signupRoute);
-app.use("/auth", loginRoute);
-app.use("/api", userRoute);
+
+app.use("/auth",loginRoute)
+app.use("/api",userRoute)
+app.use("/me",meRoute)
 
 // ✅ Make sure CORS is fully allowed
 const io = new Server(server, {
@@ -205,6 +211,8 @@ io.on("connection", (socket) => {
     console.log(`🔴 ${username || "User"} disconnected from ${roomId}`);
   });
 });
+
+  
 
 const PORT = 4000;
 server.listen(PORT, () => console.log(`✅ Backend running on port ${PORT}`));
