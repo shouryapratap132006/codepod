@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Camera, Edit3, Save } from "lucide-react";
+import { Edit3, Save } from "lucide-react";
 
 export default function ProfilePage() {
   const [user, setUser] = useState(null);
@@ -11,9 +11,7 @@ export default function ProfilePage() {
     bio: "",
     designation: "",
     achievements: [""],
-    photo: null,
   });
-  const [preview, setPreview] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -21,6 +19,7 @@ export default function ProfilePage() {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
+  // Fetch profile on mount
   useEffect(() => {
     if (!token) {
       setLoading(false);
@@ -33,13 +32,15 @@ export default function ProfilePage() {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) throw new Error("Failed to fetch profile");
+
         const data = await res.json();
         setUser(data.user);
         setProfile({
           bio: data.profile?.bio || "",
           designation: data.profile?.designation || "",
-          achievements: data.profile?.achievements || [""],
-          photo: data.profile?.photo || null,
+          achievements: data.profile?.achievements?.length
+            ? data.profile.achievements
+            : [""],
         });
       } catch (err) {
         console.error(err);
@@ -51,6 +52,7 @@ export default function ProfilePage() {
     fetchProfile();
   }, [token]);
 
+  // Handlers
   const handleChange = (e) =>
     setProfile({ ...profile, [e.target.name]: e.target.value });
 
@@ -63,30 +65,15 @@ export default function ProfilePage() {
   const addAchievement = () =>
     setProfile({ ...profile, achievements: [...profile.achievements, ""] });
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setProfile({ ...profile, photo: file });
-      setPreview(URL.createObjectURL(file));
-    }
-  };
-
   const saveProfile = async () => {
     try {
-      const formData = new FormData();
-      formData.append("bio", profile.bio);
-      formData.append("designation", profile.designation);
-      profile.achievements.forEach((a, i) =>
-        formData.append(`achievements[${i}]`, a)
-      );
-      if (profile.photo instanceof File) {
-        formData.append("photo", profile.photo);
-      }
-
       const res = await fetch("http://localhost:4000/api/profile", {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
+        method: "POST", // use POST as backend expects
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(profile),
       });
 
       if (!res.ok) throw new Error("Save failed");
@@ -102,7 +89,7 @@ export default function ProfilePage() {
 
   if (!token)
     return (
-      <div className="max-w-xl mx-auto  p-8 mt-20 mb-20 text-center bg-[#150f22] bg-gradient-to-b from-[#0A0A18] via-[#141022] to-[#1A162B]  text-white rounded-2xl shadow-md border border-gray-800">
+      <div className="max-w-xl mx-auto p-8 mt-20 mb-20 text-center bg-[#150f22] bg-gradient-to-b from-[#0A0A18] via-[#141022] to-[#1A162B] text-white rounded-2xl shadow-md border border-gray-800">
         <h2 className="text-2xl font-semibold mb-3">Please Sign In</h2>
         <p className="text-gray-400 mb-6">
           You need to sign in to view your profile.
@@ -120,39 +107,28 @@ export default function ProfilePage() {
     <div className="max-w-4xl mx-auto mt-16 mb-20 bg-[#150f22] bg-gradient-to-b from-[#0A0A18] via-[#141022] to-[#1A162B] text-white rounded-2xl shadow-md border border-gray-800 p-10">
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row items-center sm:items-start gap-10 border-b border-gray-800 pb-10">
-        {/* Profile Image */}
-        <div className="relative">
-          {preview || profile.photo ? (
-            <Image
-              src={preview || profile.photo}
-              alt="Profile"
-              width={160}
-              height={160}
-              className="rounded-full object-cover border-4 border-gray-700"
-            />
-          ) : (
-            <div className="w-40 h-40 flex items-center justify-center rounded-full bg-gray-800 text-4xl font-semibold text-gray-300">
-              {user?.name
-                ? user.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .toUpperCase()
-                : "U"}
-            </div>
-          )}
+        {/* Profile Image Placeholder */}
+        <div className="w-40 h-40 flex items-center justify-center rounded-full bg-gray-800 text-4xl font-semibold text-gray-300">
+          {user?.name
+            ? user.name
+                .split(" ")
+                .map((n) => n[0])
+                .join("")
+                .toUpperCase()
+            : "U"}
         </div>
 
         {/* Basic Info */}
         <div className="flex-1">
           <h1 className="text-3xl font-semibold">{user?.name || "User"}</h1>
           <p className="text-gray-400 text-lg mt-1">{user?.email}</p>
-          <p className="text-gray-500 mt-1 uppercase text-sm">
-            {user?.role || ""}
-          </p>
+          <p className="text-gray-500 mt-1 uppercase text-sm">{user?.role || ""}</p>
 
           <button
-            onClick={() => setEditMode(!editMode)}
+            onClick={() => {
+              if (editMode) saveProfile();
+              else setEditMode(true);
+            }}
             className="mt-6 flex items-center gap-2 px-6 py-3 text-lg bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200"
           >
             {editMode ? (
@@ -184,9 +160,7 @@ export default function ProfilePage() {
               className="w-full bg-[#13131a] border border-gray-700 rounded-lg p-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           ) : (
-            <p className="text-gray-400 text-lg">
-              {profile.designation || "—"}
-            </p>
+            <p className="text-gray-400 text-lg">{profile.designation || "—"}</p>
           )}
         </div>
 
@@ -201,9 +175,7 @@ export default function ProfilePage() {
                 <input
                   key={i}
                   value={ach}
-                  onChange={(e) =>
-                    handleAchievementChange(i, e.target.value)
-                  }
+                  onChange={(e) => handleAchievementChange(i, e.target.value)}
                   placeholder={`Achievement ${i + 1}`}
                   className="w-full bg-[#13131a] border border-gray-700 rounded-lg p-3 text-gray-200 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
@@ -246,5 +218,5 @@ export default function ProfilePage() {
         </div>
       </div>
     </div>
-  ); 
+  );
 }
