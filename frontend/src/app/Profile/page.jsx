@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { Edit3, Save } from "lucide-react";
 
 export default function ProfilePage() {
@@ -11,6 +10,8 @@ export default function ProfilePage() {
     bio: "",
     designation: "",
     achievements: [""],
+    followersCount: 0,
+    followingCount: 0,
   });
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -34,16 +35,25 @@ export default function ProfilePage() {
         if (!res.ok) throw new Error("Failed to fetch profile");
 
         const data = await res.json();
-        setUser(data.user);
+        console.log("✅ Profile fetched:", data);
+
+        setUser({
+              name: data.name || "",
+              email: data.email || "",
+            });
         setProfile({
-          bio: data.profile?.bio || "",
-          designation: data.profile?.designation || "",
-          achievements: data.profile?.achievements?.length
-            ? data.profile.achievements
-            : [""],
+          bio: data.bio || data.profile?.bio || "",
+          designation: data.designation || data.profile?.designation || "",
+          achievements:
+            data.achievements ||
+            (data.profile?.achievements?.length
+              ? data.profile.achievements
+              : [""]),
+          followersCount: data.followersCount ?? 0,
+          followingCount: data.followingCount ?? 0,
         });
       } catch (err) {
-        console.error(err);
+        console.error("❌ Error loading profile:", err);
       } finally {
         setLoading(false);
       }
@@ -52,7 +62,6 @@ export default function ProfilePage() {
     fetchProfile();
   }, [token]);
 
-  // Handlers
   const handleChange = (e) =>
     setProfile({ ...profile, [e.target.name]: e.target.value });
 
@@ -68,7 +77,7 @@ export default function ProfilePage() {
   const saveProfile = async () => {
     try {
       const res = await fetch("http://localhost:4000/api/profile", {
-        method: "POST", // use POST as backend expects
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -122,7 +131,22 @@ export default function ProfilePage() {
         <div className="flex-1">
           <h1 className="text-3xl font-semibold">{user?.name || "User"}</h1>
           <p className="text-gray-400 text-lg mt-1">{user?.email}</p>
-          <p className="text-gray-500 mt-1 uppercase text-sm">{user?.role || ""}</p>
+
+          {/* Follower Info */}
+          <div className="flex items-center gap-6 mt-4 text-gray-300">
+            <p>
+              <span className="font-semibold text-white">
+                {profile.followersCount}
+              </span>{" "}
+              Followers
+            </p>
+            <p>
+              <span className="font-semibold text-white">
+                {profile.followingCount}
+              </span>{" "}
+              Following
+            </p>
+          </div>
 
           <button
             onClick={() => {
