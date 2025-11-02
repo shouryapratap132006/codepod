@@ -5,8 +5,12 @@ const userProfileSchema = new mongoose.Schema({
   bio: { type: String, default: "" },
   designation: { type: String, default: "" },
   achievements: [{ type: String }],
+
+  // 👇 Follow system
+  followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],    // users who follow this profile
+  following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],    // users this profile follows
+  followRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // pending follow requests
 });
 
-const userProfile = mongoose.model("userProfile", userProfileSchema);
-
-export default userProfile;
+const UserProfile = mongoose.model("UserProfile", userProfileSchema);
+export default UserProfile;
