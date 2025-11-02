@@ -14,6 +14,7 @@ import userRoute from "./routes/user.js";
 import chatSocket from "./sockets/chatSocket.js";
 import meRoute from "./routes/me.js";
 
+
 // ✅ NEW IMPORT for profile
 import profileRoute from "./routes/profileRoute.js";  
 
@@ -31,6 +32,7 @@ app.use("/user", signupRoute);
 app.use("/auth", loginRoute);
 app.use("/api", userRoute);
 app.use("/me", meRoute);
+
 
 // ✅ ADD this — your profile route
 app.use("/api/profile", profileRoute);  
