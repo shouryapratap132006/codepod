@@ -1,3 +1,5 @@
+import dotenv from "dotenv"
+dotenv.config();
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
@@ -14,6 +16,8 @@ import chatSocket from "./sockets/chatSocket.js";
 import loginRoute from "./routes/login.js"
 import userRoute from "./routes/user.js"
 import meRoute from "./routes/me.js"
+
+import aiRoutes from "./routes/ai.js";
 
 
 const app = express();
